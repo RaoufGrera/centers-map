@@ -3,7 +3,7 @@ name: DeployCenters
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 
 jobs:
