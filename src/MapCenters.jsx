@@ -1,12 +1,45 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, Component } from 'react';
+import Select, { createFilter } from "react-select";
+import { FixedSizeList as List } from "react-window";
 
-import Select from 'react-select';
 
 import MapRef, { Map, Marker, Popup, GeolocateControl, NavigationControl } from 'react-map-gl';
 
 import myData from './assets/centers2023.json';
+const options = [];
 
+myData.forEach(e => {
+    options.push({
+        id: e.id,
+        value: e.id.toString(),
+        label: e.name + " [ " + e.office + " ]",
+        longitude: e.longitude,
+        latitude: e.latitude
+
+    }); //l
+})
+
+const height = 35;
+
+class MenuList extends Component {
+    render() {
+        const { options, children, maxHeight, getValue } = this.props;
+        const [value] = getValue();
+        const initialOffset = options.indexOf(value) * height;
+
+        return (
+            <List
+                height={maxHeight}
+                itemCount={children.length}
+                itemSize={height}
+                initialScrollOffset={initialOffset}
+            >
+                {({ index, style }) => <div style={style}>{children[index]}</div>}
+            </List>
+        );
+    }
+}
 
 export default function MapCenters() {
 
@@ -40,7 +73,7 @@ export default function MapCenters() {
     const [data, setData] = useState([]);
     const onMouseEnter = useCallback(() => setCursor('pointer'), []);
     const onMouseLeave = useCallback(() => setCursor('auto'), []);
-    const [centers, setCenters] = useState([]);
+    // const [centers, setCenters] = useState([]);
     function fillData() {
         const items = [];
 
@@ -57,16 +90,16 @@ export default function MapCenters() {
 
         //console.log("r", relatedCounties[i].properties)
 
-        setCenters(items);
+        // setCenters(items);
     }
 
     useEffect(() => {
-        fillData()
+        //fillData()
     }, [])
 
     const query = (e) => {
 
-        const enodata = centers.filter(word => word?.value == e.value);
+        const enodata = options.filter(word => word?.value == e.value);
 
         SetSelectValue(e.value)
         if (enodata.length != 0) {
@@ -153,14 +186,18 @@ export default function MapCenters() {
             <NavigationControl position="top-left" />
         </Map>
         <div className='flex mt-2 justify-center '>
+
             <Select
                 className='w-1/2 rtl'
-                options={centers}
-                value={centers.filter(function (option) {
+                filterOption={createFilter({ ignoreAccents: false })} // this makes all the difference!
+                components={{ MenuList }}
+                value={options.filter(function (option) {
                     return option.value === selectValue;
                 })}
                 onChange={(e) => query(e)}
-            /></div>
+                options={options}
+            />
+        </div>
         <div className='absolute bottom-0 left-0 bg-white p-2 rtl text-sm	border-l-red-400'>
             تم استخدام المراكز الانتخابية من الموقع الخاص بالمفوضية الوطنية العليا للانتخابات https://centers.hnec.ly/
         </div>

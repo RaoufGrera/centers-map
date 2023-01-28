@@ -19,7 +19,7 @@ jobs:
         key: ${{ secrets.SSH_SECRET }}
         port: 22
         script: |
-          cd /var/www/centers
-          git pull centers main
+          cd /var/cc
+          git pull centers master
           npm run build
-          pm2 restart 4
+          pm2 restart 7
