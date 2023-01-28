@@ -1,10 +1,11 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import Select from 'react-select';
 
 import MapRef, { Map, Marker, Popup, GeolocateControl, NavigationControl } from 'react-map-gl';
 
+import myData from './assets/centers2023.json';
 
 
 export default function MapCenters() {
@@ -26,9 +27,9 @@ export default function MapCenters() {
             //window.alert(`Clicked layer ${feature.layer.id}`); // eslint-disable-line no-alert
 
 
-            mapRef.current?.flyTo({ center: [feature.properties.langtit, feature.properties.longtit], duration: 2000, zoom: 16.3 });
-            setUrlGoogle(`https://www.google.com/maps/dir/?api=1&destination=${feature.properties.longtit},${feature.properties.langtit}`)
-            SetSelectValue(feature.properties.num.toString());
+            mapRef.current?.flyTo({ center: [feature.properties.longitude, feature.properties.latitude], duration: 2000, zoom: 16.3 });
+            setUrlGoogle(`https://www.google.com/maps/dir/?api=1&destination=${feature.properties.latitude},${feature.properties.longitude}`)
+            SetSelectValue(feature.properties.id.toString());
             console.log(feature.properties);
             setPopupInfo(feature.properties);
         }
@@ -40,61 +41,52 @@ export default function MapCenters() {
     const onMouseEnter = useCallback(() => setCursor('pointer'), []);
     const onMouseLeave = useCallback(() => setCursor('auto'), []);
     const [centers, setCenters] = useState([]);
-
-    const onloadMap = () => {
-        const relatedCounties = mapRef.current.querySourceFeatures('composite', {
-            sourceLayer: 'city-0l48i1',
-            //  filter: ['==', 'num', parseInt(e.value)]
-        });
-        console.log("relatedCounties", relatedCounties)
-
+    function fillData() {
         const items = [];
-        for (let i = 0; i < relatedCounties.length; i++) {
-            if (items.filter(e => e.langtit == relatedCounties[i].properties.langtit).length == 0) {
-                if (relatedCounties[i].properties.num == 14114) {
-                    console.log("id", i)
 
-                    console.log("r", relatedCounties[i].properties)
-                }
-                items.push({
-                    value: relatedCounties[i].properties.num.toString(),
-                    label: relatedCounties[i].properties.name,
-                    langtit: relatedCounties[i].properties.langtit,
-                    longtit: relatedCounties[i].properties.longtit
+        myData.forEach(e => {
+            items.push({
+                id: e.id,
+                value: e.id.toString(),
+                label: e.name + " [ " + e.office + " ]",
+                longitude: e.longitude,
+                latitude: e.latitude
 
-                });
-            }
+            }); //l
+        })
 
-        }
         //console.log("r", relatedCounties[i].properties)
 
         setCenters(items);
-        // setData(relatedCounties);
     }
 
+    useEffect(() => {
+        fillData()
+    }, [])
+
     const query = (e) => {
-        console.log("centers", centers)
+
         const enodata = centers.filter(word => word?.value == e.value);
 
-        console.log("newdata", enodata)
         SetSelectValue(e.value)
         if (enodata.length != 0) {
             const feature = enodata[0];
-            mapRef.current?.flyTo({ center: [feature.langtit, feature.longtit], duration: 2000, zoom: 16.3 });
+            mapRef.current?.flyTo({ center: [feature.longitude, feature.latitude], duration: 2000, zoom: 16.3 });
             // setPopupInfo(feature.properties);
         }
     }
 
     return (<>
+
         <Map
             ref={mapRef}
             style={{ position: "absolute", width: "100%", height: "100%" }}
             initialViewState={{
-                latitude: 32.89125092,
-                longitude: 13.1809206307,
+                latitude: 28.549256,
+                longitude: 17.5409206307,
                 bearing: 0,
-                pitch: 0,
-                zoom: 9
+                pitch: 20,
+                zoom: 5.3
             }}
             cursor={cursor}
             onMouseEnter={onMouseEnter}
@@ -104,8 +96,8 @@ export default function MapCenters() {
             interactiveLayerIds={["centers"]}
             onClick={(e) => onClick(e)}
 
-            //  onMouseOver={onMouseOver}
-            onLoad={() => onloadMap()}
+        //  onMouseOver={onMouseOver}
+        //  onLoad={() => onloadMap()}
         //  onMouseDown={() => setPopupInfo(null)}
         >
             {popupInfo && (
@@ -113,14 +105,14 @@ export default function MapCenters() {
 
 
                     anchor="bottom"
-                    longitude={popupInfo.langtit}
-                    latitude={popupInfo.longtit}
+                    longitude={popupInfo.longitude}
+                    latitude={popupInfo.latitude}
 
                 >
 
                     <Popup
-                        longitude={popupInfo.langtit}
-                        latitude={popupInfo.longtit}
+                        longitude={popupInfo.longitude}
+                        latitude={popupInfo.latitude}
 
                         closeButton={false}
                         closeOnClick={false}
@@ -133,7 +125,7 @@ export default function MapCenters() {
                         </button>
                         <div className="px-2 py-3 md:px-4 text-base border-b rounded-t dark:border-gray-600">
                             <span >المركز</span>
-                            <span className="bg-yellow-100 text-yellow-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">{popupInfo.num}</span>
+                            <span className="bg-yellow-100 text-yellow-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">{popupInfo.id}</span>
 
                         </div>
                         <div className="p-2 text-base">
@@ -169,6 +161,9 @@ export default function MapCenters() {
                 })}
                 onChange={(e) => query(e)}
             /></div>
+        <div className='absolute bottom-0 left-0 bg-white p-2 rtl text-sm	border-l-red-400'>
+            تم استخدام المراكز الانتخابية من الموقع الخاص بالمفوضية الوطنية العليا للانتخابات https://centers.hnec.ly/
+        </div>
 
     </>);
 }
