@@ -21,5 +21,6 @@ jobs:
         script: |
           cd /var/cc
           git pull centers master
+          npm i
           npm run build
           pm2 restart 7
