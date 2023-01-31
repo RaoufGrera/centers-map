@@ -20,7 +20,7 @@ myData.forEach(e => {
     }); //l
 })
 
-const height = 35;
+const height = 50;
 
 class MenuList extends Component {
     render() {
@@ -30,7 +30,7 @@ class MenuList extends Component {
 
         return (
             <List
-                className='rtl'
+                className='rtl text-sm'
                 height={maxHeight}
                 itemCount={children.length}
                 itemSize={height}
